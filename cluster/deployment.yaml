@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: mean-demo4
+    app.kubernetes.io/instance: mean-demo-instance
+    app.kubernetes.io/version: '1.0.0'
+    app.kubernetes.io/managed-by: kubectl
+  name: mean-demo-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mean-demo4
+  template:
+    metadata:
+      labels:
+        app: mean-demo4
+    spec:
+      containers:
+        - image: 851422970123.dkr.ecr.us-east-2.amazonaws.com/wordpressimage:v2
+          imagePullPolicy: Always
+          name: mean-demo4
+          ports:
+            - containerPort: 4040

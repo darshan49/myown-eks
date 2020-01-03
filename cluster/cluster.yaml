@@ -1,0 +1,11 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: aws-eks # it is passed
+  region: us-east-2
+nodeGroups:
+  - name: workers #clusternode Group Name
+    instanceType: t2.micro #disired Instance Type
+    desiredCapacity: 3 #desired nodes count / capacity
+    ssh:
+     allow: false
