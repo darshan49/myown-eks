@@ -14,8 +14,7 @@ nodeGroups:
 
 
 
-AWSAccessKeyId=AKIAJAEGIHIVC77ID2CQ
-AWSSecretKey=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
+
 
 
 depoyment.yaml  (# throuh aws ecr images we need to specify in container image place)
