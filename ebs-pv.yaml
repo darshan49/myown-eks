@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata: 
+  name: pv
+  labels:
+    type: amezonEBS
+spec:
+  capacity:
+    storage: 4Gi
+  accessModes:
+    - ReadWriteOnce
+  awsElasticBlockStore:
+    volumeID: vol-044aab9715e09730a
+    fsType: ext4
