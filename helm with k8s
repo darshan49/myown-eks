@@ -1,0 +1,246 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: eks-demo
+  region: us-east-1
+nodeGroups:
+  - name: ng-1 #clusternode Group Name
+    instanceType: t2.micro #disired Instance Type
+    desiredCapacity: 3 #desired nodes count / capacity
+    ssh:
+     allow: false
+
+
+
+
+
+AWSAccessKeyId=AKIAJAEGIHIVC77ID2CQ
+AWSSecretKey=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
+
+
+depoyment.yaml  (# throuh aws ecr images we need to specify in container image place)
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: mean-demo
+    app.kubernetes.io/instance: mean-demo-instance
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: kubectl
+  name: mean-demo-deployment
+spec:
+  replicas: 1
+  selectors:
+    matchLabels:
+      app: mean-demo
+  template:
+    metadata:
+      labels:
+        app: mean-demo
+    spec:
+      containers:
+          image:
+          imagePullPolicy: Always
+          name: mean-demo
+          ports:
+            - containerPort: 4040
+3) kubernetes Dashboard eks-admin-service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: eks-admin
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: eks-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: eks-admin
+  namespace: kube-system
+
+
+----
+4) service.yaml for wordpress
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: mean-demo4
+    app.kubernetes.io/instance: mean-demo-instance
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/component: backend
+  name: mean-demo4
+spec:
+  selector:
+    app: mean-demo4
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 4040
+
+5) service.yaml for nginx
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: mean-demo4
+    app.kubernetes.io/instance: mean-demo-instance
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/component: backend
+  name: mean-demo4
+spec:
+  selector:
+    app: nginx
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      
+6) nginx deployment file
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: nginx
+  name: nginx-deploy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      run: nginx
+  template:
+    metadata:
+      labels:
+        run: nginx
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+
+
+
+
+github justmeopen-source= justmeandopensource/kubernetes
+
+
+--- 
+tiller deployment file
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tiller
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: tiller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: tiller
+    namespace: kube-system
+
+
+
+---- 
+Helm3
+
+Helm install document : https://github.com/darshan49/helm
+helm version --short # it is helm 3 version
+helm repo add brigade https://brigadecore.github.io/charts
+stable  https://kubernetes-charts.storage.googleapis.com/
+helm repo list # to check repos list 
+if you install jenkins in pod using helm 
+hellm search hub jenkins # it will show the jenkins urls and charts
+helm search repo jenkins # it will show the stable/jenkins 
+helm install stable/jenkins --values /tmp/jenkins.values --generate-name # for jenkins
+
+helm inspect values stable/jenkins > /tmp/jenkins.values # this is helm version2
+helm show values stable/jenkins > tmp/jenkins.values  # it is helm 3
+
+ 2)install metrics-server using helm3
+
+if there is no metrics-server we will not get using nods (ex: kubectl top nodes , kubectl top pods) # to check CPU,MEMORY utilization of the nodes & Pods
+helm search repo metrics-server
+helm show values stable/metrics-server > /tmp/metrics-server.values
+vim /tmp/metrics-server.values # in this edit we need to enable hostfile & remove & remove [] args # before on --- kubelet-insecure-tls
+#install metrics-server install  specific namespace ex: operations
+helm install metrics-server stable/metrics-server --namespace operations --values /tmp/metrics-server.values # befor thet we need to create namespace manually in helm3
+so# kubectl create ns operations
+kubectlget ns # it will show namespace
+#now install metrics-server using helm
+helm install metrics-server stable/metrics-server --namespace operations --values /tmp/metrics-server.values
+# to check logs of metrics-server pod
+ kubectl -n operations logs -f metrics-server-57b898595c-gp2km 
+# before that we need to check all in namespace
+kubectl get ns opearation all
+# to check pods utilization of CPU,MEMORY
+kubectl -n kube-system top  po
+
+
+install promethes it is monitoribg tool fot k8s .it is developed by soundcloud. we collect the metrics from promethes
+install grafana : it is visualization tool
+kubectl cluster-info
+#then we need to give value of ip in nfs
+ip a s # to check ip of nfs 
+# add annatation in default storage class in nfs values
+to check that https://kubernetes.io/docs/tasks/administer-cluster/change-default-storage-class/    >..  add annatation storageclass.kubernetes.io/is-default-class=true.
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: managed-nfs-storage
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: example.com/nfs
+parameters:
+  archiveOnDelete: "false"
+# to check storage class
+kubectl get storageclass
+
+#  to search install promotheus $ grafana
+ helm search repo prometheus
+  helm search repo grafana 
+  helm fetch stable/prometheus # to download chat it will download on tarfile format & we need to extract that tar file
+helm show values stable/prometheus > /tmp/prometheus.values 
+vim /tmp/prometheus.values
+we need to explore outside world using :NodePort or LoadBalancer 
+#change in prometheus.values under above server ( Prometheus server container name) 
+enable: true 
+
+ nodePort: 32322
+ type: NodePort 
+also change persistant storage
+Prometheus server data Persistent Volume size
+size: 2Gi (default is 8Gi) # 
+( 785     ## Prometheus server data Persistent Volume size
+ 786     ##
+ 787     size: 8Gi)
+ helm install prometheus stable/prometheus --namespace prometheus --values /tmp/prometheus.values
+ 
+
+ 
+
+
+
+
+

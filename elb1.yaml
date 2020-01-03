@@ -1,0 +1,21 @@
+--- 
+- name: create load balancer
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+  - name: create elb
+    ec2_elb_lb: 
+      name: load balancing
+      region: us-east-2
+      state: present
+      cross_az_load_balancing: yes 
+      listners: 
+      - protocal: http 
+        load_balance_port: 80
+        instance_port: 80
+      tags: 
+        name: create load balancer
+        security_group_id: default
+        zones: us-east-2b 
+               

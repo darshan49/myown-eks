@@ -1,0 +1,15 @@
+---
+- name: create ec2_launch config
+  hosts: localhost
+  connection: local
+  tasks:
+  - name: ec2 launch config
+    ec2_lc:
+     name: ec2_launchconfig
+     image_id: ami-0c64dd618a49aeee8
+     key_name: boto3
+     region: us-east-2
+     security_groups: default
+     instance_type: t2.micro
+     assign_public_ip: yes
+     #user_data_path: /root/user_data 
